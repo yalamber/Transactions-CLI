@@ -8,8 +8,8 @@
 
 # script arguments
 
-    - token (-t, --token <tokenName>)
-    - date (-d, --date <date>) date in MM-DD-YYYY format
+    token (-t, --token <tokenName>)
+    date (-d, --date <date>) date in MM-DD-YYYY format
 
 # How to run script
 
