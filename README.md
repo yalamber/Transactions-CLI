@@ -3,6 +3,7 @@
 - clone this repo
 - npm install
 - copy .env.sample file to .env
+- add proper CRYPTO_COMPARE_API_KEY env variable from crypto compare api.
 - copy transactions.csv file inside data folder
 
 # script arguments
