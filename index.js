@@ -5,6 +5,7 @@ import fs from 'fs';
 import fetch from 'node-fetch';
 import { program } from 'commander';
 import { parse } from 'csv-parse';
+import currency from 'currency.js';
 import moment from 'moment';
 import chalk from 'chalk';
 import ora from 'ora';
@@ -38,7 +39,7 @@ async function getCurrentTokenPriceTS(token, timestamp) {
 }
 
 (async () => {
-  const spinner = ora('Processing Transactions').start();
+  let spinner;
 
   // Initialize the parser
   const parser = parse({
@@ -52,6 +53,10 @@ async function getCurrentTokenPriceTS(token, timestamp) {
   const options = program.opts();
 
   const tokenBalances = {};
+
+  if (!options.help) {
+    spinner = ora('Processing Transactions').start();
+  }
 
   let optDateInUnix;
   if (options.date) {
@@ -86,11 +91,13 @@ async function getCurrentTokenPriceTS(token, timestamp) {
           tokenBalances[record.token] = 0;
         }
         if (record.transaction_type === 'DEPOSIT') {
-          tokenBalances[record.token] =
-            parseFloat(tokenBalances[record.token]) + parseFloat(record.amount);
+          tokenBalances[record.token] = currency(
+            tokenBalances[record.token]
+          ).add(currency(record.amount));
         } else if (record.transaction_type === 'WITHDRAWL') {
-          tokenBalances[record.token] =
-            parseFloat(tokenBalances[record.token]) - parseFloat(record.amount);
+          tokenBalances[record.token] = currency(
+            tokenBalances[record.token]
+          ).subtract(currency(record.amount));
         }
       } else {
         if (optDateInUnix && optDateInUnix < record.timestamp) {
@@ -101,11 +108,13 @@ async function getCurrentTokenPriceTS(token, timestamp) {
           tokenBalances[record.token] = 0;
         }
         if (record.transaction_type === 'DEPOSIT') {
-          tokenBalances[record.token] =
-            parseFloat(tokenBalances[record.token]) + parseFloat(record.amount);
+          tokenBalances[record.token] = currency(
+            tokenBalances[record.token]
+          ).add(currency(record.amount));
         } else if (record.transaction_type === 'WITHDRAWL') {
-          tokenBalances[record.token] =
-            parseFloat(tokenBalances[record.token]) - parseFloat(record.amount);
+          tokenBalances[record.token] = currency(
+            tokenBalances[record.token]
+          ).subtract(currency(record.amount));
         }
       }
     }
@@ -127,9 +136,11 @@ async function getCurrentTokenPriceTS(token, timestamp) {
       const usdTokenValues = await getCurrentTokensPrice(tokens.join(','));
       for (const token in usdTokenValues) {
         console.log(
-          `${chalk.yellow(token)} : $${chalk.green(
+          `${chalk.yellow(
+            `${token} (${tokenBalances[token]})`
+          )} : $${chalk.green(
             usdTokenValues[token].USD * tokenBalances[token]
-          )}`
+          )} USD`
         );
       }
     } else {
@@ -139,9 +150,11 @@ async function getCurrentTokenPriceTS(token, timestamp) {
           optDateInUnix
         );
         console.log(
-          `${chalk.yellow(token)} : $${chalk.green(
+          `${chalk.yellow(
+            `${token} (${tokenBalances[token]})`
+          )} : $${chalk.green(
             usdTokenValues[token].USD * tokenBalances[token]
-          )}`
+          )} USD`
         );
       }
     }
